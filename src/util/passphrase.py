@@ -1,15 +1,17 @@
 import random
+import os
 
 BLOCK_SIZE = 128
 
-def generate_key(filename=f'key{BLOCK_SIZE}'):
+def generate_key():
     key = []
-    n = random.randint(0, 0xffffffffffffffff)
-    for i in range(BLOCK_SIZE/8):
+    n = random.randint(0, 0xffffffffffffffffffffffffffffffff)
+    for i in range(int(BLOCK_SIZE/8)):
         key.append(n&0xff)
-        key >>= 8
+        n >>= 8
 
-    with open(filename, "wb") as f:
+    id_key = len(os.listdir('../keys'))
+    with open(f'../keys/key_{id_key}', "wb") as f:
         f.write(bytes(key))
 
     return key
@@ -30,3 +32,4 @@ def parse_key(key_file):
 
 def is_valid(key):
     return len(key) == BLOCK_SIZE/8
+    

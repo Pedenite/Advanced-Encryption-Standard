@@ -1,6 +1,7 @@
 from util.args_helper import str2bool
 import util.passphrase
 import argparse
+import os
 import sys
 
 parser = argparse.ArgumentParser(description='Cifra e decifra dados usando a cifra de bloco AES simétrica.', formatter_class=argparse.RawTextHelpFormatter)
@@ -11,6 +12,8 @@ parser.add_argument('-o', type=argparse.FileType('w'), help='Arquivo de saída',
 parser.add_argument('-d', nargs='?', type=str2bool, const=True, default=False, help='Especifica que a mensagem deve ser decifrada na execução (padrão: cifrar)', metavar='decifrar')
 
 args = parser.parse_args()
+
+os.chdir(os.path.dirname(sys.argv[0]))
 
 msg = pswd = ''
 with args.mensagem as file:
