@@ -58,17 +58,9 @@ class Cipher():
                 block[i] = table[block[i]]
 
     def shiftRows(self):
-<<<<<<< HEAD
         for block in self.blocks:
             for x in range(0, len(block)): # corrigir!!!
                 block[x] = block[x:]+block[:x]
-=======
-        return
-        block = self.blocks
-        for x in range(0, len(block)):
-            block[x] = block[x:]+block[:x]
-        return block
->>>>>>> 2c79c5d6fbd776b308148ddefed4f6999ec04862
 
     def mixColumns(self):
         pass
