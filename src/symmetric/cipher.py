@@ -1,11 +1,8 @@
 class Cipher():
-    def __init__(self):
-        pass
-
-    def cifra(self, msg, key, rounds):
+    def __init__(self, msg, key, rounds):
         blocks = self.processMessage(msg)
         for i in rounds:
-            pass
+            pass       
 
     def subBytes(self):
         table = [
