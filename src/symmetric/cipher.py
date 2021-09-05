@@ -2,7 +2,8 @@ class Cipher():
     def __init__(self, msg, key, rounds):
         self.msg = msg
         self.key = key
-        self.blocks = self.processMessage()
+        self.blocks = []
+        self.processMessage()
 
         self.addRoundKey()
         for i in range(rounds):
@@ -56,6 +57,7 @@ class Cipher():
         
 
     def shiftRows(self):
+        return
         block = self.blocks
         for x in range(0, len(block)):
             block[x] = block[x:]+block[:x]
