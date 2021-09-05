@@ -1,5 +1,6 @@
 def cifra(msg, key, rounds):
     blocks = processMessage(msg)
+
     for i in rounds:
         pass
 
@@ -51,7 +52,10 @@ def mixColumns():
     pass
 
 def addRoundKey(msg, key):
-    pass
+    blocks = []
+    for elem in msg:
+        for i in len(key):
+            pass
 
 def processMessage(msg):
     blocks = []
