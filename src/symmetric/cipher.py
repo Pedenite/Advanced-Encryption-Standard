@@ -1,3 +1,4 @@
+from util.blocks import convert_matrix, convert_list
 class Cipher():
     def __init__(self, msg, key, rounds):
         self.msg = msg
@@ -58,9 +59,11 @@ class Cipher():
                 block[i] = table[block[i]]
 
     def shiftRows(self):
-        for block in self.blocks:
-            for x in range(0, len(block)): # corrigir!!!
-                block[x] = block[x:]+block[:x]
+        for i in range(len(self.blocks)):
+            block = convert_matrix(self.blocks[i])
+            for x in range(0, len(block)):
+                block[x] = block[x][x:]+block[x][:x]
+            self.blocks[i] = convert_list(block)
 
     def mixColumns(self):
         pass
@@ -84,5 +87,5 @@ class Cipher():
         msg = ''
         for block in self.blocks:
             for c in block:
-                msg += str(c)
+                msg += f'{str(c)}\n'
         return msg 
