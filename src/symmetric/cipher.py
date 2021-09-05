@@ -8,7 +8,7 @@ class Cipher():
 
         self.addRoundKey()
         for i in range(rounds):
-            # Adicionar método para alterar a chave...
+            self.expandKey()
             self.subBytes()
             self.shiftRows()
             if i != rounds-1:
@@ -90,7 +90,7 @@ class Cipher():
                 block[i] ^= self.key[i]
 
     def expandKey(self):
-        pass # função que define a chave a cada round
+        pass # função que altera a chave a cada round
 
     def processMessage(self):
         for i in range(len(self.msg)):
