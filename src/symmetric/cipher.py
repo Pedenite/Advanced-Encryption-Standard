@@ -1,9 +1,18 @@
 class Cipher():
     def __init__(self, msg, key, rounds):
         self.msg = msg
+        self.key = key
         self.blocks = self.processMessage()
-        for i in rounds:
-            pass
+
+        self.addRoundKey()
+        for i in range(rounds):
+            self.subBytes()
+            self.shiftRows()
+
+            if i != rounds-1:
+                self.mixColumns()
+            
+            self.addRoundKey()
 
     def subBytes(self):
         table = [
@@ -42,7 +51,9 @@ class Cipher():
             96,  81, 127, 169,  25, 181,  74,  13,  45, 229, 122, 159, 147, 201, 156, 239,
             160, 224,  59,  77, 174,  42, 245, 176, 200, 235, 187,  60, 131,  83, 153,  97,
             23,  43,   4, 126, 186, 119, 214,  38, 225, 105,  20,  99,  85,  33,  12, 125
-        ]    
+        ]
+
+        
 
     def shiftRows(self):
         block = self.blocks
@@ -53,13 +64,13 @@ class Cipher():
     def mixColumns(self):
         pass
 
-    def addRoundKey(self, msg, key):
-        for elem in msg:
-            for i in len(key):
-                pass
+    def addRoundKey(self):
+        for block in self.blocks:
+            for i in range(len(self.key)):
+                block[i] ^= self.key[i]
 
     def processMessage(self):
-        for i in len(self.msg):
+        for i in range(len(self.msg)):
             if i%16 == 0:
                 self.blocks.append([])
             
