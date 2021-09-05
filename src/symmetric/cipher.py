@@ -3,7 +3,7 @@ class Cipher():
         pass
 
     def cifra(self, msg, key, rounds):
-        blocks = processMessage(msg)
+        blocks = self.processMessage(msg)
         for i in rounds:
             pass
 
