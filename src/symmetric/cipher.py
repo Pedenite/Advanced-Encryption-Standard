@@ -42,8 +42,10 @@ def subBytes():
          23,  43,   4, 126, 186, 119, 214,  38, 225, 105,  20,  99,  85,  33,  12, 125
     ]    
 
-def shiftRows():
-    pass
+def shiftRows(block):
+    for x in range(0, len(block)):
+        block[x] = block[x:]+block[:x]
+    return block
 
 def mixColumns():
     pass
