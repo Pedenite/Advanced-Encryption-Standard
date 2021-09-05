@@ -3,7 +3,7 @@ class Cipher():
         self.msg = msg
         self.blocks = self.processMessage()
         for i in rounds:
-            pass       
+            pass
 
     def subBytes(self):
         table = [
@@ -53,19 +53,17 @@ class Cipher():
     def mixColumns(self):
         pass
 
-    def addRoundKey(self):
-        pass
+    def addRoundKey(self, msg, key):
+        for elem in msg:
+            for i in len(key):
+                pass
 
     def processMessage(self):
-        msg = self.msg
-        blocks = []
-        for i in len(msg):
+        for i in len(self.msg):
             if i%16 == 0:
-                blocks.append([])
+                self.blocks.append([])
             
-            blocks[-1].append(msg[i])
+            self.blocks[-1].append(self.msg[i])
         
-        while len(blocks[-1]) != 16:
-            blocks[-1].append(ord('{'))
-
-        return blocks
+        while len(self.blocks[-1]) != 16:
+            self.blocks[-1].append(ord('{'))
