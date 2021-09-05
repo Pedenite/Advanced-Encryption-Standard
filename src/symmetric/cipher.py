@@ -80,3 +80,10 @@ class Cipher():
         
         while len(self.blocks[-1]) != 16:
             self.blocks[-1].append(ord('{'))
+
+    def __str__(self):
+        msg = ''
+        for block in self.blocks:
+            for c in block:
+                msg += str(c)
+        return msg 
