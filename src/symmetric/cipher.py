@@ -7,6 +7,7 @@ class Cipher():
 
         self.addRoundKey()
         for i in range(rounds):
+            # Adicionar método para alterar a chave...
             self.subBytes()
             self.shiftRows()
             if i != rounds-1:
