@@ -1,6 +1,7 @@
 class Cipher():
     def __init__(self, msg, key, rounds):
-        blocks = self.processMessage(msg)
+        self.msg = msg
+        self.blocks = self.processMessage()
         for i in rounds:
             pass       
 
@@ -43,7 +44,8 @@ class Cipher():
             23,  43,   4, 126, 186, 119, 214,  38, 225, 105,  20,  99,  85,  33,  12, 125
         ]    
 
-    def shiftRows(self, block):
+    def shiftRows(self):
+        block = self.blocks
         for x in range(0, len(block)):
             block[x] = block[x:]+block[:x]
         return block
@@ -51,10 +53,11 @@ class Cipher():
     def mixColumns(self):
         pass
 
-    def addRoundKey(self, msg, key):
+    def addRoundKey(self):
         pass
 
-    def processMessage(self, msg):
+    def processMessage(self):
+        msg = self.msg
         blocks = []
         for i in len(msg):
             if i%16 == 0:
