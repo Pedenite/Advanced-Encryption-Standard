@@ -8,7 +8,6 @@ class Cipher():
         for i in range(rounds):
             self.subBytes()
             self.shiftRows()
-
             if i != rounds-1:
                 self.mixColumns()
             
@@ -53,13 +52,14 @@ class Cipher():
             23,  43,   4, 126, 186, 119, 214,  38, 225, 105,  20,  99,  85,  33,  12, 125
         ]
 
-        
+        for block in self.blocks:
+            for i in range(len(block)):
+                block[i] = table[block[i]]
 
     def shiftRows(self):
-        block = self.blocks
-        for x in range(0, len(block)):
-            block[x] = block[x:]+block[:x]
-        return block
+        for block in self.blocks:
+            for x in range(0, len(block)): # corrigir!!!
+                block[x] = block[x:]+block[:x]
 
     def mixColumns(self):
         pass
