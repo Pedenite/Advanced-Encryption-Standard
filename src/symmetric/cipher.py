@@ -55,7 +55,7 @@ def addRoundKey(msg, key):
 
 def processMessage(msg):
     blocks = []
-    for i in len(msg):
+    for i in range(len(msg)):
         if i%16 == 0:
             blocks.append([])
         
