@@ -3,6 +3,7 @@ import util.passphrase
 import argparse
 import os
 import sys
+from symmetric.cipher import Cipher
 
 parser = argparse.ArgumentParser(description='Cifra e decifra dados usando a cifra de bloco AES simétrica.', formatter_class=argparse.RawTextHelpFormatter)
 
@@ -33,7 +34,7 @@ else:
     except Exception as e:
         print(e)
 
-res = "Saida"#cifra(msg, pswd, args.d)
+res = Cipher(msg, pswd, 10)
 
 with args.o as file:
     print(res, end='', file=file)
