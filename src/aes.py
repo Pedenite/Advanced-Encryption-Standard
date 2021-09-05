@@ -11,6 +11,7 @@ parser.add_argument('mensagem', type=argparse.FileType('rb'), help='Arquivo com 
 parser.add_argument('-k', nargs='?', type=argparse.FileType('rb'), help='Arquivo com a chave de criptografia. Se não informado, será gerada uma chave automaticamente que será salva no arquivo \'key[tamanho da chave]\'', metavar='chave')
 parser.add_argument('-o', type=argparse.FileType('w'), help='Arquivo de saída', metavar='output', required=True)
 parser.add_argument('-d', nargs='?', type=str2bool, const=True, default=False, help='Especifica que a mensagem deve ser decifrada na execução (padrão: cifrar)', metavar='decifrar')
+parser.add_argument('-r', nargs='?', type=int, default=10, help='Quantidade de rodadas', metavar='rounds')
 
 args = parser.parse_args()
 
@@ -34,7 +35,7 @@ else:
     except Exception as e:
         print(e)
 
-res = Cipher(msg, pswd, 10)
+res = Cipher(msg, pswd, args.r)
 
 with args.o as file:
     print(res, end='', file=file)

@@ -67,12 +67,30 @@ class Cipher():
             self.blocks[i] = convert_list(block)
 
     def mixColumns(self):
-        pass
+        matrix = [
+            [2, 3, 1, 1],
+            [1, 2, 3, 1],
+            [1, 1, 2, 3],
+            [3, 1, 1, 2]
+        ]
+        
+        matrix_inv = [
+            [14, 11, 13, 9],
+            [9, 14, 11, 13],
+            [13, 9, 14, 11],
+            [11, 13, 9, 14]
+        ]
+
+        for block in self.blocks:
+            pass # multiplicação de matriz, porém com xor no lugar da soma e multiplicação em um campo finito (2**8)
 
     def addRoundKey(self):
         for block in self.blocks:
             for i in range(len(self.key)):
                 block[i] ^= self.key[i]
+
+    def expandKey(self):
+        pass # função que define a chave a cada round
 
     def processMessage(self):
         for i in range(len(self.msg)):
