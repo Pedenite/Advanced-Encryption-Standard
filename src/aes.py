@@ -8,7 +8,7 @@ from symmetric.cipher import Cipher
 parser = argparse.ArgumentParser(description='Cifra e decifra dados usando a cifra de bloco AES simétrica.', formatter_class=argparse.RawTextHelpFormatter)
 
 parser.add_argument('mensagem', type=argparse.FileType('rb'), help='Arquivo com a mensagem a ser cifrada/decifrada')
-parser.add_argument('-k', nargs='?', type=argparse.FileType('rb'), help='Arquivo com a chave de criptografia. Se não informado, será gerada uma chave automaticamente que será salva no arquivo \'key[tamanho da chave]\'', metavar='chave')
+parser.add_argument('-k', nargs='?', type=argparse.FileType('rb'), help='Arquivo com a chave de criptografia. Se não informado, será gerada uma chave automaticamente que será salva no arquivo \'keys/key[tamanho da chave]\'', metavar='chave')
 parser.add_argument('-o', type=argparse.FileType('w'), help='Arquivo de saída', metavar='output', required=True)
 parser.add_argument('-d', nargs='?', type=str2bool, const=True, default=False, help='Especifica que a mensagem deve ser decifrada na execução (padrão: cifrar)', metavar='decifrar')
 parser.add_argument('-r', nargs='?', type=int, default=10, help='Quantidade de rodadas', metavar='rounds')
