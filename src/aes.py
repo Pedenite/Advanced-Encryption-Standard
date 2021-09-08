@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser(description='Cifra e decifra dados usando a cif
 
 parser.add_argument('mensagem', type=argparse.FileType('rb'), help='Arquivo com a mensagem a ser cifrada/decifrada')
 parser.add_argument('-k', nargs='?', type=argparse.FileType('rb'), help='Arquivo com a chave de criptografia. Se não informado, será gerada uma chave automaticamente que será salva no arquivo \'keys/key[tamanho da chave]\'', metavar='chave')
-parser.add_argument('-o', type=argparse.FileType('w'), help='Arquivo de saída', metavar='output', required=True)
+parser.add_argument('-o', type=argparse.FileType('wb'), help='Arquivo de saída', metavar='output', required=True)
 parser.add_argument('-d', nargs='?', type=str2bool, const=True, default=False, help='Especifica que a mensagem deve ser decifrada na execução (padrão: cifrar)', metavar='decifrar')
 parser.add_argument('-r', nargs='?', type=int, default=10, help='Quantidade de rodadas', metavar='rounds')
 
@@ -43,4 +43,7 @@ else:
 res = Decipher(msg, pswd, args.r) if args.d else Cipher(msg, pswd, args.r)
 
 with args.o as file:
-    print(res, end='', file=file)
+    blocks = []
+    for block in res.blocks:
+        blocks += block
+    file.write(bytes(blocks))
