@@ -1,5 +1,5 @@
 from util.blocks import convert_matrix, convert_list
-from util.galois import mul, mat_mul
+from util.galois import mat_mul
 
 class Cipher():
     def __init__(self, msg, key, rounds):
@@ -60,10 +60,12 @@ class Cipher():
 
         for block_raw in self.blocks:
             block = convert_matrix(block_raw)
-            for k in range(4):
+            for column in range(4):
+                val = [[block[i][column]] for i in range(4)]
+                result = mat_mul(matrix, val)
+
                 for i in range(4):
-                    for j in range(4):
-                        block_raw[i + (k*4)] ^= mul(matrix[i][j], block[j][i])
+                    block_raw[i + (column*4)] = result[i][0]
 
     def addRoundKey(self):
         for block in self.blocks:

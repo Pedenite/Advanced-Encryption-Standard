@@ -1,20 +1,24 @@
 from util.blocks import convert_matrix, convert_list
+from util.galois import mat_mul
+
 class Decipher():
     def __init__(self, msg, key, rounds):
         self.msg = msg
         self.key = key
         self.blocks = []
         self.processMessage()
+        # alterar a chave para a final
 
-        self.addRoundKey()
         for i in range(rounds):
-            self.expandKey()
-            self.subBytes()
-            self.shiftRows()
-            if i != rounds-1:
-                self.mixColumns()
-            
             self.addRoundKey()
+            if i != 0:
+                self.mixColumns()
+
+            self.shiftRows()
+            self.subBytes()
+            self.expandKey()
+            
+        self.addRoundKey() # aqui deve ser a chave original...
 
     def subBytes(self):
         table = [
@@ -56,8 +60,14 @@ class Decipher():
             [11, 13, 9, 14]
         ]
 
-        for block in self.blocks:
-            pass # multiplicação de matriz, porém com xor no lugar da soma e multiplicação em um campo finito (2**8)
+        for block_raw in self.blocks:
+            block = convert_matrix(block_raw)
+            for column in range(4):
+                val = [[block[i][column]] for i in range(4)]
+                result = mat_mul(matrix, val)
+
+                for i in range(4):
+                    block_raw[i + (column*4)] = result[i][0]
 
     def addRoundKey(self):
         for block in self.blocks:

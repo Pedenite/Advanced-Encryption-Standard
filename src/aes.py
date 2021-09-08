@@ -4,6 +4,7 @@ import argparse
 import os
 import sys
 from symmetric.cipher import Cipher
+from symmetric.decipher import Decipher
 
 parser = argparse.ArgumentParser(description='Cifra e decifra dados usando a cifra de bloco AES simétrica.', formatter_class=argparse.RawTextHelpFormatter)
 
@@ -16,6 +17,10 @@ parser.add_argument('-r', nargs='?', type=int, default=10, help='Quantidade de r
 args = parser.parse_args()
 
 os.chdir(os.path.dirname(sys.argv[0]))
+
+if args.r <= 0:
+    print("Quantidade de rounds inválida!")
+    exit()
 
 msg = pswd = []
 with args.mensagem as f:
@@ -35,7 +40,7 @@ else:
     except Exception as e:
         print(e)
 
-res = Cipher(msg, pswd, args.r)
+res = Decipher(msg, pswd, args.r) if args.d else Cipher(msg, pswd, args.r)
 
 with args.o as file:
     print(res, end='', file=file)

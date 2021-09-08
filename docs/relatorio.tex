@@ -82,7 +82,7 @@ Segue a lista de argumentos aceitos:
     \item \textbf{-d} - Argumento que indica que o programa vai descriptografar. Deve ser passado no final sem parâmetros adicionais.
 \end{itemize}
 
-Portanto, como exemplo, para decifrar um criptograma no arquivo \texttt{sample/ex.txt} usando a chave \texttt{keys/key\_sample} e 3 \textit{rounds} e colocando o output no arquivo \texttt{sample/out.txt}, pode ser usado o seguinte comando:
+Portanto, como exemplo, para decifrar um criptograma no arquivo \texttt{sample/ex.txt} usando a chave \texttt{keys/key\_sample} com 3 \textit{rounds} e colocando o output no arquivo \texttt{sample/out.txt}, pode ser usado o seguinte comando:
 
 \begin{lstlisting}
 python src/aes.py sample/ex.txt -k keys/key_sample -r 3 -o sample/out.txt -d
