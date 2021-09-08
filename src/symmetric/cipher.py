@@ -1,4 +1,6 @@
 from util.blocks import convert_matrix, convert_list
+from util.galois import mul, mat_mul
+
 class Cipher():
     def __init__(self, msg, key, rounds):
         self.msg = msg
@@ -56,8 +58,12 @@ class Cipher():
             [3, 1, 1, 2]
         ]
 
-        for block in self.blocks:
-            pass # multiplicação de matriz, porém com xor no lugar da soma e multiplicação em um campo finito (2**8)
+        for block_raw in self.blocks:
+            block = convert_matrix(block_raw)
+            for k in range(4):
+                for i in range(4):
+                    for j in range(4):
+                        block_raw[i + (k*4)] ^= mul(matrix[i][j], block[j][i])
 
     def addRoundKey(self):
         for block in self.blocks:
@@ -82,4 +88,5 @@ class Cipher():
         for block in self.blocks:
             for c in block:
                 msg += f'{str(c)}\n'
+
         return msg 
