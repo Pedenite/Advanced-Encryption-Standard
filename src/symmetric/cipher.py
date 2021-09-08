@@ -74,8 +74,13 @@ class Cipher():
                 block[i] ^= self.key[i]
 
     def expandKey(self, round):
-        for i in range(len(self.key)):
-            self.key[i] ^= self.s_box[self.key[i]] ^ (rcon(round) if i == 0 else 0)
+        column_f = [self.s_box[self.key[i]] for i in range(12, 16)]
+        column_f = column_f[1:] + [column_f[0]]
+        column_f[0] ^= rcon(round)
+        for i in range(4):
+            for j in range(4):
+                self.key[j + (4*i)] ^= column_f[j]
+                column_f[j] = self.key[j + (4*i)]
 
     def processMessage(self):
         for i in range(len(self.msg)):
