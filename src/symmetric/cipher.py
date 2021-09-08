@@ -1,25 +1,12 @@
 from util.blocks import convert_matrix, convert_list
-from util.galois import mat_mul
+from util.galois import mat_mul, rcon
 
 class Cipher():
     def __init__(self, msg, key, rounds):
         self.msg = msg
         self.key = key
-        self.blocks = []
-        self.processMessage()
 
-        self.addRoundKey()
-        for i in range(rounds):
-            self.expandKey()
-            self.subBytes()
-            self.shiftRows()
-            if i != rounds-1:
-                self.mixColumns()
-            
-            self.addRoundKey()
-
-    def subBytes(self):
-        table = [
+        self.s_box = [
             99, 124, 119, 123, 242, 107, 111, 197,  48,   1, 103,  43, 254, 215, 171, 118,
             202, 130, 201, 125, 250,  89,  71, 240, 173, 212, 162, 175, 156, 164, 114, 192,
             183, 253, 147,  38,  54,  63, 247, 204,  52, 165, 229, 241, 113, 216,  49,  21,
@@ -38,9 +25,23 @@ class Cipher():
             140, 161, 137,  13, 191, 230,  66, 104,  65, 153,  45,  15, 176,  84, 187,  22
         ]
 
+        self.blocks = []
+        self.processMessage()
+
+        self.addRoundKey()
+        for i in range(rounds):
+            self.expandKey(i)
+            self.subBytes()
+            self.shiftRows()
+            if i != rounds-1:
+                self.mixColumns()
+            
+            self.addRoundKey()
+
+    def subBytes(self):
         for block in self.blocks:
             for i in range(len(block)):
-                block[i] = table[block[i]]
+                block[i] = self.s_box[block[i]]
 
     def shiftRows(self):
         for i in range(len(self.blocks)):
@@ -72,8 +73,9 @@ class Cipher():
             for i in range(len(self.key)):
                 block[i] ^= self.key[i]
 
-    def expandKey(self):
-        pass # função que altera a chave a cada round
+    def expandKey(self, round):
+        for i in range(len(self.key)):
+            self.key[i] ^= self.s_box[self.key[i]] ^ (rcon(round) if i == 0 else 0)
 
     def processMessage(self):
         for i in range(len(self.msg)):

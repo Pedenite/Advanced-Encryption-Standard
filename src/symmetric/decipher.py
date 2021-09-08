@@ -1,27 +1,12 @@
 from util.blocks import convert_matrix, convert_list
-from util.galois import mat_mul
+from util.galois import mat_mul, rcon
 
 class Decipher():
     def __init__(self, msg, key, rounds):
         self.msg = msg
         self.key = key
-        self.blocks = []
-        self.processMessage()
-        # alterar a chave para a final
 
-        for i in range(rounds):
-            self.addRoundKey()
-            if i != 0:
-                self.mixColumns()
-
-            self.shiftRows()
-            self.subBytes()
-            self.expandKey()
-            
-        self.addRoundKey() # aqui deve ser a chave original...
-
-    def subBytes(self):
-        table = [
+        self.s_box = [
             82,   9, 106, 213,  48,  54, 165,  56, 191,  64, 163, 158, 129, 243, 215, 251,
             124, 227,  57, 130, 155,  47, 255, 135,  52, 142,  67,  68, 196, 222, 233, 203,
             84, 123, 148,  50, 166, 194,  35,  61, 238,  76, 149,  11,  66, 250, 195,  78,
@@ -40,9 +25,25 @@ class Decipher():
             23,  43,   4, 126, 186, 119, 214,  38, 225, 105,  20,  99,  85,  33,  12, 125
         ]
 
+        self.blocks = []
+        self.processMessage()
+        # alterar a chave para a final
+
+        for i in range(rounds):
+            self.addRoundKey()
+            if i != 0:
+                self.mixColumns()
+
+            self.shiftRows()
+            self.subBytes()
+            self.expandKey(rounds-1-i)
+            
+        self.addRoundKey() # aqui deve ser a chave original...
+
+    def subBytes(self):
         for block in self.blocks:
             for i in range(len(block)):
-                block[i] = table[block[i]]
+                block[i] = self.s_box[block[i]]
 
     def shiftRows(blocks):
         for i in range(len(blocks)):
@@ -74,8 +75,9 @@ class Decipher():
             for i in range(len(self.key)):
                 block[i] ^= self.key[i]
 
-    def expandKey(self):
-        pass # função que altera a chave a cada round
+    def expandKey(self, round):
+        for i in range(len(self.key)):
+            self.key[i] ^= self.s_box[self.key[i]] ^ (rcon(round) if i == 0 else 0)
 
     def processMessage(self):
         for i in range(len(self.msg)):

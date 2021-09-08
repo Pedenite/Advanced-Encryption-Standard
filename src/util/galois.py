@@ -16,3 +16,10 @@ def mul(a, b):
         res ^= 0x11b << (res.bit_length() - 9)
 
     return res
+
+def rcon(n):
+    res = 1
+    for i in range(n):
+        res = (res<<1) ^ (0x11b & -(res>>7))
+    
+    return res
