@@ -21,7 +21,6 @@ def parse_key(key_file):
     with key_file as f:
         byte = f.read(1)
         while byte != b"":
-            print(hex(ord(byte)))
             key.append(ord(byte))
             byte = f.read(1)
 
