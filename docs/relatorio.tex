@@ -24,7 +24,7 @@
 
 \usepackage{inconsolata}
 \lstset{
-    language=sh,
+    language=python,
     backgroundcolor=\color{backcolour},   
     commentstyle=\color{codegreen},
     keywordstyle=\color{blue},
@@ -46,7 +46,7 @@
     inputencoding=utf8,
     extendedchars=true,
     showstringspaces=false,
-    literate={á}{{\'a}}1 {ã}{{\~a}}1 {é}{{\'e}}1 {Ó}{{\'O}}1 {Ã}{{\~A}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ç}{{\.c}}1 {ê}{{\^e}}1,
+    literate={á}{{\'a}}1 {ã}{{\~a}}1 {é}{{\'e}}1 {Ó}{{\'O}}1 {Ã}{{\~A}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ç}{{\.c}}1 {ê}{{\^e}}1 {ú}{{\'u}}1,
 }
 
 % \pagecolor[rgb]{0.1,0.1,0.1} %black
@@ -62,13 +62,13 @@ Pedro Pessoa Ramos, 18/0026488}
 \maketitle
 
 \section{Implementação do AES}
-A implementação do AES foi feita fixa para a versão de 128 bits e para isso foi criado o arquivo \texttt{aes.py} na pasta \texttt{src} usando a linguagem python preferencialmente na versão 3.6 ou acima. Para executar o programa para cifrar um arquivo \texttt{sample/teste.txt} por exemplo com uma chave aleatória usando o padrão de 10 \textit{rounds} e salvar o criptograma no arquivo sample/output.txt, deve ser usado o seguinte comando:
+A implementação do AES foi feita fixa para a versão de 128 bits e para isso foi criado o arquivo \texttt{aes.py} na pasta \texttt{src} usando a linguagem python preferencialmente na versão 3.6 ou acima. Para executar o programa para cifrar o arquivo \texttt{sample/dupla.jpg}, por exemplo com uma chave pseudo-aleatória usando o padrão de \textit{rounds} no modo ECB e salvar o criptograma no arquivo \texttt{sample/10r.jpg}, deve ser usado o seguinte comando:
 
 \begin{lstlisting}
-python src/aes.py sample/teste.txt -o output.txt
+python src/aes.py sample/dupla.jpg -o sample/10r.jpg
 \end{lstlisting}
 
-O primeiro argumento que o programa recebe é o arquivo que contém a mensagem e o argumento \texttt{-o} é obrigatório e representa o arquivo onde será impresso o criptograma. Existem outros argumentos opcionais que podem ser listados com o \texttt{-h}:
+O primeiro argumento que o programa recebe é o arquivo que contém a mensagem. Logo em seguida, está sendo passado o argumento \texttt{-o}, que é obrigatório e representa o arquivo onde será impresso o criptograma. Como não foi passada uma chave pré-existente, será gerada a chave durante a execução e ela será salva na pasta \texttt{keys} e será impressa uma mensagem informando o nome exato do arquivo que a contém. Existem outros argumentos opcionais que podem ser listados com o \texttt{-h}:
 
 \begin{lstlisting}
 python src/aes.py -h
@@ -79,16 +79,52 @@ Segue a lista de argumentos aceitos:
     \item \textbf{-k} - Arquivo com a chave para criptografar/descriptografar. Argumento obrigatório se for acionada a opção para descriptografar.
     \item \textbf{-o} - Arquivo onde será feito o output. Obrigatório.
     \item \textbf{-r} - Número positivo que representa a quantidade de \textit{rounds} que o AES irá usar. Se não passado um valor, será usado o padrão de 10.
-    \item \textbf{-d} - Argumento que indica que o programa vai descriptografar. Deve ser passado no final sem parâmetros adicionais.
+    \item \textbf{-d} - Argumento que indica que o programa vai descriptografar. Deve ser passado no final do comando sem parâmetros adicionais.
 \end{itemize}
 
-Portanto, como exemplo, para decifrar um criptograma no arquivo \texttt{sample/ex.txt} usando a chave \texttt{keys/key\_sample} com 3 \textit{rounds} e colocando o output no arquivo \texttt{sample/out.txt}, pode ser usado o seguinte comando:
+Portanto, como exemplo, para cifrar o mesmo arquivo do exemplo acima usando a mesma chave (ex.: \texttt{keys/key\_1}) com 1 \textit{round} e colocando o output no arquivo \texttt{sample/1r.jpg}, pode ser usado o seguinte comando:
 
 \begin{lstlisting}
-python src/aes.py sample/ex.txt -k keys/key_sample -r 3 -o sample/out.txt -d
+python src/aes.py sample/dupla.jpg -k keys/key_1 -r 1 -o sample/1r.jpg
+\end{lstlisting}
+
+Da mesma forma, para decifrá-lo no arquivo \texttt{sample/decoded.jpg} por exemplo, pode-se usar o comando abaixo:
+
+\begin{lstlisting}
+python src/aes.py sample/1r.jpg -k keys/key_1 -r 1 -o sample/decoded.jpg -d
 \end{lstlisting}
 
 \subsection{Aspectos Técnicos}
+Para a implementação descrita acima, temos 2 arquivos principais que realizam as operações do AES, ambos na pasta \texttt{src/symmetric}. O \texttt{cipher} é usado para cifrar e o \texttt{decipher} é usado para decifrar. De forma resumida, o funcionamento da cifração se dá na seguinte forma:
 
+\begin{lstlisting}
+self.addRoundKey()          # realiza o XOR com a chave inicial
+for i in range(rounds):     # itera sobre os rounds
+    self.expandKey(i)       # transforma a chave
+    self.subBytes()
+    self.shiftRows()
+    if i != rounds-1:       # não realiza o mixColumns no último round
+        self.mixColumns()
+    
+    self.addRoundKey()      # Realiza o XOR com a chave da rodada
+\end{lstlisting}
+
+Já para a decifração, é feito o contrário das operações, sendo que algumas foram modificadas apesar de ter o mesmo nome e segue a seguinte rotina:
+
+\begin{lstlisting}
+for x in range(rounds):     # vai até a chave final obtida na cifração
+    self.expandKey(x)
+
+for i in range(rounds):     # itera sobre os rounds
+    self.addRoundKey()      # realiza o XOR com a chave da rodada
+    if i != 0:              # não realiza o mixColumns no round inicial
+        self.mixColumns()
+
+    self.shiftRows()
+    self.subBytes()
+    self.shrinkKey(rounds-1-i) # operação reversa da expandKey
+    
+self.addRoundKey()          # Realiza o XOR com a chave inicial
+\end{lstlisting}
 
 \end{document}

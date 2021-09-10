@@ -1,4 +1,4 @@
-from util.blocks import convert_matrix, convert_list
+from util.blocks import processMessage, convert_matrix, convert_list
 from util.galois import mat_mul, rcon
 
 class Cipher():
@@ -25,8 +25,7 @@ class Cipher():
             140, 161, 137,  13, 191, 230,  66, 104,  65, 153,  45,  15, 176,  84, 187,  22
         ]
 
-        self.blocks = []
-        self.processMessage()
+        self.blocks = processMessage(self.msg)
 
         self.addRoundKey()
         for i in range(rounds):
@@ -81,16 +80,6 @@ class Cipher():
             for j in range(4):
                 self.key[j + (4*i)] ^= column_f[j]
                 column_f[j] = self.key[j + (4*i)]
-
-    def processMessage(self):
-        for i in range(len(self.msg)):
-            if i%16 == 0:
-                self.blocks.append([])
-            
-            self.blocks[-1].append(self.msg[i])
-        
-        while len(self.blocks[-1]) != 16:
-            self.blocks[-1].append(ord('{'))
 
     def __str__(self):
         msg = ''

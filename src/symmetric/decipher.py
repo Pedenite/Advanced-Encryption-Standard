@@ -1,4 +1,4 @@
-from util.blocks import convert_matrix, convert_list
+from util.blocks import processMessage, convert_matrix, convert_list
 from util.galois import mat_mul, rcon
 
 class Decipher():
@@ -44,8 +44,7 @@ class Decipher():
             23,  43,   4, 126, 186, 119, 214,  38, 225, 105,  20,  99,  85,  33,  12, 125
         ]
 
-        self.blocks = []
-        self.processMessage()
+        self.blocks = processMessage(self.msg)
         
         for x in range(rounds):
             self.expandKey(x)
@@ -119,16 +118,10 @@ class Decipher():
 
         return self.key
 
-    def processMessage(self):
-        for i in range(len(self.msg)):
-            if i%16 == 0:
-                self.blocks.append([])
-            
-            self.blocks[-1].append(self.msg[i])
-
     def __str__(self):
         msg = ''
         for block in self.blocks:
             for c in block:
                 msg += f'{str(c)}\n'
+
         return msg 

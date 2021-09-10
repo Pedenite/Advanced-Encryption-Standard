@@ -1,4 +1,5 @@
 from util.args_helper import str2bool
+from util.jpg import Jpg
 import util.passphrase
 import argparse
 import os
@@ -40,10 +41,25 @@ else:
     except Exception as e:
         print(e)
 
+jpg = Jpg(msg)
+if jpg.is_jpg:
+    msg = jpg.content
+
 res = Decipher(msg, pswd, args.r) if args.d else Cipher(msg, pswd, args.r)
 
 with args.o as file:
     blocks = []
     for block in res.blocks:
         blocks += block
+
+    if args.d:
+        for i in range(15):
+            if blocks[-1] == ord('{'):
+                blocks.pop()
+            else:
+                break
+    
+    if jpg.is_jpg:
+        blocks = jpg.headers + blocks + [0xff, 0xd9]
+
     file.write(bytes(blocks))

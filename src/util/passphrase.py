@@ -11,9 +11,11 @@ def generate_key():
         n >>= 8
 
     id_key = len(os.listdir('../keys'))
-    with open(f'../keys/key_{id_key}', "wb") as f:
+    filename = f'key_{id_key}'
+    with open(f'../keys/{filename}', "wb") as f:
         f.write(bytes(key))
 
+    print("A chave gerada foi salva no arquivo", filename, "da pasta keys")
     return key
 
 def parse_key(key_file):
