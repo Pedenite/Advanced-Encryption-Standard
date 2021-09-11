@@ -22,8 +22,8 @@ class Jpg:
         print("Separando headers do JPG")
         for i in range(len(self.content)):
             if self.content[i] == 0xff and self.content[i+1] == 0xda:
-                headers = self.content[:i+2]
-                self.content = self.content[i+2:-2]
+                headers = self.content[:i+14]
+                self.content = self.content[i+14:-2]
                 break
 
         return headers

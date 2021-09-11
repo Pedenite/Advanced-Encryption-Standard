@@ -14,6 +14,7 @@
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amssymb}
+\usepackage{verbatimbox}
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
 
@@ -126,5 +127,147 @@ for i in range(rounds):     # itera sobre os rounds
     
 self.addRoundKey()          # Realiza o XOR com a chave inicial
 \end{lstlisting}
+
+A chave é obrigatoriamente de 16 bytes de tamanho e pode ser obtida pelo arquivo passado por parâmetro ou gerada automaticamente por um número randômico. Se passada uma chave inválida ao programa, uma mensagem de erro será exibida.
+
+\subsubsection{Processamento da Mensagem em Blocos}
+Esta etapa é a primeira a ser executada ao obter o arquivo com a mensagem e foi usado o modo ECB que é considerado o padrão pelo algoritmo se não informado um outro modo e, portanto, os blocos são obtidos de simples segmentos contínuos de 16 bytes da mensagem até chegar ao final. Para o caso do tamanho da mensagem não ser divisível por 16, são acrescentados caracteres representados pelo ASCII 7B em hexadecimal ao final para completar, que ficará apenas no último bloco. Conforme especificação, os blocos, ao serem transformados em matrizes 4x4, são colocados verticalmente na matriz. Consideremos o seguinte array:
+
+\begin{center}
+\addvbuffer[12pt 8pt]{\begin{tabular}{|cccccccccccccccc|}
+    1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 & 13 & 14 & 15 & 16
+\end{tabular}}
+\end{center}
+
+O bloco gerado por ele será o seguinte:
+
+\begin{center}
+\addvbuffer[12pt 8pt]{\begin{tabular}{|cccc|}
+    1 & 5 & 9 & 13\\
+    2 & 6 & 10 & 14\\
+    3 & 7 & 11 & 15\\
+    4 & 8 & 12 & 16
+\end{tabular}}
+\end{center}
+
+\subsubsection{addRoundKey}
+Na cifração, esta é a primeira etapa que é realizada no primeiro round duas vezes, uma no início ainda com a chave inicial e outra no final, após alterar a chave com o \texttt{expandKey}. Nos rounds seguintes, a etapa é realizada apenas 1 vez, sendo o último passo. Consiste de apenas um XOR realizado entre um byte do bloco com um byte da chave, sendo feita a operação entre os elementos de mesmo \textit{index}. Na decifração é feito o contrário, portanto dos primeiro round até o round $n-1$, é feito o XOR normalmente com a chave da rodada ao início dela e no último round é executado mais uma vez no final de tudo com a chave que terá retornado à original.
+
+\subsubsection{expandKey}
+É a função usada na cifração que modifica a chave a cada rodada. Esta começa realizando um XOR entre a primeira coluna da chave com a última coluna com um shift e alterada pela mesma tabela usada no \texttt{subBytes}. Em seguida, com o resultado deste XOR é feito mais um XOR com a tabela RCON de acordo com o round atual e o resultado deste será a primeira coluna da chave modificada. Já para as 3 demais colunas, é feito o XOR entre a coluna original da chave e a coluna anterior da nova chave, sendo uma operação de natureza cumulativa. A operação é sempre realizada em cima da chave já modificada pelo \texttt{expandKey} anterior, o que garante que sempre será usada uma chave diferente em cada rodada.
+
+Foi criada uma função para a decifração que reverte o \texttt{expandKey} chamada \texttt{shrinkKey}. Como ela é usada para reverter a operação, é feito exatamente o inverso da anterior.
+
+\subsubsection{subBytes}
+Esta operação é executada em cada round e, basicamente utiliza uma tabela para a substituição do byte por um outro valor de acordo com o index representado pelo byte atual. A tabela é chamada de \texttt{s\_box} e pode ser vista abaixo:
+
+\noindent
+\addvbuffer[12pt 8pt]{\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+    \hline
+    99 & 124 & 119 & 123 & 242 & 107 & 111 & 197 &  48 &   1 & 103 &  43 & 254 & 215 & 171 & 118 \\
+    \hline
+    202 & 130 & 201 & 125 & 250 &  89 &  71 & 240 & 173 & 212 & 162 & 175 & 156 & 164 & 114 & 192 \\
+    \hline
+    183 & 253 & 147 &  38 &  54 &  63 & 247 & 204 &  52 & 165 & 229 & 241 & 113 & 216 &  49 &  21 \\
+    \hline
+    4 & 199 &  35 & 195 &  24 & 150 &   5 & 154 &   7 &  18 & 128 & 226 & 235 &  39 & 178 & 117 \\
+    \hline
+    9 & 131 &  44 &  26 &  27 & 110 &  90 & 160 &  82 &  59 & 214 & 179 &  41 & 227 &  47 & 132 \\
+    \hline
+    83 & 209 &   0 & 237 &  32 & 252 & 177 &  91 & 106 & 203 & 190 &  57 &  74 &  76 &  88 & 207 \\
+    \hline
+    208 & 239 & 170 & 251 &  67 &  77 &  51 & 133 &  69 & 249 &   2 & 127 &  80 &  60 & 159 & 168 \\
+    \hline
+    81 & 163 &  64 & 143 & 146 & 157 &  56 & 245 & 188 & 182 & 218 &  33 &  16 & 255 & 243 & 210 \\
+    \hline
+    205 &  12 &  19 & 236 &  95 & 151 &  68 &  23 & 196 & 167 & 126 &  61 & 100 &  93 &  25 & 115 \\
+    \hline
+    96 & 129 &  79 & 220 &  34 &  42 & 144 & 136 &  70 & 238 & 184 &  20 & 222 &  94 &  11 & 219 \\
+    \hline
+    224 &  50 &  58 &  10 &  73 &   6 &  36 &  92 & 194 & 211 & 172 &  98 & 145 & 149 & 228 & 121 \\
+    \hline
+    231 & 200 &  55 & 109 & 141 & 213 &  78 & 169 & 108 &  86 & 244 & 234 & 101 & 122 & 174 &   8 \\
+    \hline
+    186 & 120 &  37 &  46 &  28 & 166 & 180 & 198 & 232 & 221 & 116 &  31 &  75 & 189 & 139 & 138 \\
+    \hline
+    112 &  62 & 181 & 102 &  72 &   3 & 246 &  14 &  97 &  53 &  87 & 185 & 134 & 193 &  29 & 158 \\
+    \hline
+    225 & 248 & 152 &  17 & 105 & 217 & 142 & 148 & 155 &  30 & 135 & 233 & 206 &  85 &  40 & 223 \\
+    \hline
+    140 & 161 & 137 &  13 & 191 & 230 &  66 & 104 &  65 & 153 &  45 &  15 & 176 &  84 & 187 &  22 \\
+    \hline
+\end{tabular}}
+
+A tabela acima pode ser revertida pela tabela mostrada abaixo, chamada \texttt{s\_box\_inv}:
+
+\noindent
+\addvbuffer[12pt 8pt]{\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+    \hline
+    82 &   9 & 106 & 213 &  48 &  54 & 165 &  56 & 191 &  64 & 163 & 158 & 129 & 243 & 215 & 251 \\
+    \hline
+    124 & 227 &  57 & 130 & 155 &  47 & 255 & 135 &  52 & 142 &  67 &  68 & 196 & 222 & 233 & 203 \\
+    \hline
+    84 & 123 & 148 &  50 & 166 & 194 &  35 &  61 & 238 &  76 & 149 &  11 &  66 & 250 & 195 &  78 \\
+    \hline
+    8 &  46 & 161 & 102 &  40 & 217 &  36 & 178 & 118 &  91 & 162 &  73 & 109 & 139 & 209 &  37 \\
+    \hline
+    114 & 248 & 246 & 100 & 134 & 104 & 152 &  22 & 212 & 164 &  92 & 204 &  93 & 101 & 182 & 146 \\
+    \hline
+    108 & 112 &  72 &  80 & 253 & 237 & 185 & 218 &  94 &  21 &  70 &  87 & 167 & 141 & 157 & 132 \\
+    \hline
+    144 & 216 & 171 &   0 & 140 & 188 & 211 &  10 & 247 & 228 &  88 &   5 & 184 & 179 &  69 &   6 \\
+    \hline
+    208 &  44 &  30 & 143 & 202 &  63 &  15 &   2 & 193 & 175 & 189 &   3 &   1 &  19 & 138 & 107 \\
+    \hline
+    58 & 145 &  17 &  65 &  79 & 103 & 220 & 234 & 151 & 242 & 207 & 206 & 240 & 180 & 230 & 115 \\
+    \hline
+    150 & 172 & 116 &  34 & 231 & 173 &  53 & 133 & 226 & 249 &  55 & 232 &  28 & 117 & 223 & 110 \\
+    \hline
+    71 & 241 &  26 & 113 &  29 &  41 & 197 & 137 & 111 & 183 &  98 &  14 & 170 &  24 & 190 &  27 \\
+    \hline
+    252 &  86 &  62 &  75 & 198 & 210 & 121 &  32 & 154 & 219 & 192 & 254 & 120 & 205 &  90 & 244 \\
+    \hline
+    31 & 221 & 168 &  51 & 136 &   7 & 199 &  49 & 177 &  18 &  16 &  89 &  39 & 128 & 236 &  95 \\
+    \hline
+    96 &  81 & 127 & 169 &  25 & 181 &  74 &  13 &  45 & 229 & 122 & 159 & 147 & 201 & 156 & 239 \\
+    \hline
+    160 & 224 &  59 &  77 & 174 &  42 & 245 & 176 & 200 & 235 & 187 &  60 & 131 &  83 & 153 &  97 \\
+    \hline
+    23 &  43 &   4 & 126 & 186 & 119 & 214 &  38 & 225 & 105 &  20 &  99 &  85 &  33 &  12 & 125 \\
+    \hline
+\end{tabular}}
+
+\subsubsection{shiftRows}
+A etapa é executada a cada round e passa em cada uma das 4 linhas do bloco da mensagem e mantém a primeira inalterada, a segunda é feito um \textit{shift} dos bytes para a direita, como se um byte empurrase o outro uma casa para a esquerda. Na linha seguinte, os bytes são deslocados 2 casas à esquerda e na última linha, 3 casas. A etapa descrita acima é para a cifragem. Para a decifragem, os bytes são deslocados à direita para inverter a operação.
+
+\subsubsection{mixColumns}
+A etapa é executada em todos os rounds com exceção do último no caso da cifragem, enquanto na decifragem a operação é excluída do primeiro round a fim de fazer o contrário para decifrar. A operação realiza uma multiplicação de cada coluna do bloco com uma matriz fixa, trocando as operações de soma por XOR e a multiplicação é feita em um campo finito $GF(8)$. Segue a matriz usada abaixo:
+
+\begin{center}
+\addvbuffer[12pt 8pt]{\begin{tabular}{|cccc|}
+    2 & 3 & 1 & 1\\
+    1 & 2 & 3 & 1\\
+    1 & 1 & 2 & 3\\
+    3 & 1 & 1 & 2
+\end{tabular}}
+\end{center}
+
+Para a inversão da operação, apenas é trocada a matriz para a descrita abaixo:
+
+\begin{center}
+\addvbuffer[12pt 8pt]{\begin{tabular}{|cccc|}
+    14 & 11 & 13 & 9\\
+    9 & 14 & 11 & 13\\
+    13 & 9 & 14 & 11\\
+    11 & 13 & 9 & 14
+\end{tabular}}
+\end{center}
+
+\section{Modo CTR}
+
+\section{Testes}
+Para os testes propostos, foi criado uma classe \texttt{Jpg} que identifica se o arquivo é um jpg por algumas sequências de bytes. O arquivo jpg deve iniciar com \texttt{FF D8 FF} e terminar com \texttt{FF D9}, portanto isso é verificado e em caso positivo, tudo o que vem antes da primeira ocorrência de \texttt{FF DA} e mais 12 bytes depois são removidos da mensagem e guardados para inclusão no resultado final. A abordagem não funcionou corretamente pois existem chances altíssimas de ser gerado o byte \texttt{FF} no criptograma, que indica um header no JPG, não deixando a imagem ser interpretada corretamente pelo visualizador de imagens.
+
+Com isso, foi concluído que o formato JPG, apesar de recomendado, não é o formato ideal para o teste proposto. Apesar disso, seguem os resultados:
 
 \end{document}
