@@ -2,7 +2,7 @@ from util.blocks import processMessage, convert_matrix, convert_list
 from util.galois import mat_mul, rcon
 
 class Decipher():
-    def __init__(self, msg, key, rounds):
+    def __init__(self, msg, key, rounds, mode):
         self.msg = msg
         self.key = key
 

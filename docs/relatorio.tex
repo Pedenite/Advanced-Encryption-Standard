@@ -63,10 +63,10 @@ Pedro Pessoa Ramos, 18/0026488}
 \maketitle
 
 \section{Implementação do AES}
-A implementação do AES foi feita fixa para a versão de 128 bits e para isso foi criado o arquivo \texttt{aes.py} na pasta \texttt{src} usando a linguagem python preferencialmente na versão 3.6 ou acima. Para executar o programa para cifrar o arquivo \texttt{sample/dupla.jpg}, por exemplo com uma chave pseudo-aleatória usando o padrão de \textit{rounds} no modo ECB e salvar o criptograma no arquivo \texttt{sample/10r.jpg}, deve ser usado o seguinte comando:
+A implementação do AES foi feita fixa para a versão de 128 bits e para isso foi criado o arquivo \texttt{aes.py} na pasta \texttt{src} usando a linguagem python preferencialmente na versão 3.6 ou acima. Para executar o programa para cifrar o arquivo \texttt{sample/dupla.ppm}, por exemplo com uma chave pseudo-aleatória usando o padrão de \textit{rounds} no modo ECB e salvar o criptograma no arquivo \texttt{sample/10r.ppm}, deve ser usado o seguinte comando:
 
 \begin{lstlisting}
-python src/aes.py sample/dupla.jpg -o sample/10r.jpg
+python src/aes.py sample/dupla.ppm -o sample/10r.ppm
 \end{lstlisting}
 
 O primeiro argumento que o programa recebe é o arquivo que contém a mensagem. Logo em seguida, está sendo passado o argumento \texttt{-o}, que é obrigatório e representa o arquivo onde será impresso o criptograma. Como não foi passada uma chave pré-existente, será gerada a chave durante a execução e ela será salva na pasta \texttt{keys} e será impressa uma mensagem informando o nome exato do arquivo que a contém. Existem outros argumentos opcionais que podem ser listados com o \texttt{-h}:
@@ -81,18 +81,19 @@ Segue a lista de argumentos aceitos:
     \item \textbf{-o} - Arquivo onde será feito o output. Obrigatório.
     \item \textbf{-r} - Número positivo que representa a quantidade de \textit{rounds} que o AES irá usar. Se não passado um valor, será usado o padrão de 10.
     \item \textbf{-d} - Argumento que indica que o programa vai descriptografar. Deve ser passado no final do comando sem parâmetros adicionais.
+    \item \textbf{-m} - Modo de operação do AES. Opções disponíveis são ECB ou CTR. Se não passado um valor, será usado o modo ECB.
 \end{itemize}
 
-Portanto, como exemplo, para cifrar o mesmo arquivo do exemplo acima usando a mesma chave (ex.: \texttt{keys/key\_1}) com 1 \textit{round} e colocando o output no arquivo \texttt{sample/1r.jpg}, pode ser usado o seguinte comando:
+Portanto, como exemplo, para cifrar o mesmo arquivo do exemplo acima usando a mesma chave (ex.: \texttt{keys/key\_1}) com 1 \textit{round} e colocando o output no arquivo \texttt{sample/1r.ppm}, pode ser usado o seguinte comando:
 
 \begin{lstlisting}
-python src/aes.py sample/dupla.jpg -k keys/key_1 -r 1 -o sample/1r.jpg
+python src/aes.py sample/dupla.ppm -k keys/key_1 -r 1 -o sample/1r.ppm
 \end{lstlisting}
 
-Da mesma forma, para decifrá-lo no arquivo \texttt{sample/decoded.jpg} por exemplo, pode-se usar o comando abaixo:
+Da mesma forma, para decifrá-lo no arquivo \texttt{sample/decoded.ppm} por exemplo, pode-se usar o comando abaixo:
 
 \begin{lstlisting}
-python src/aes.py sample/1r.jpg -k keys/key_1 -r 1 -o sample/decoded.jpg -d
+python src/aes.py sample/1r.ppm -k keys/key_1 -r 1 -o sample/decoded.ppm -d
 \end{lstlisting}
 
 \subsection{Aspectos Técnicos}
@@ -128,7 +129,7 @@ for i in range(rounds):     # itera sobre os rounds
 self.addRoundKey()          # Realiza o XOR com a chave inicial
 \end{lstlisting}
 
-A chave é obrigatoriamente de 16 bytes de tamanho e pode ser obtida pelo arquivo passado por parâmetro ou gerada automaticamente por um número randômico. Se passada uma chave inválida ao programa, uma mensagem de erro será exibida.
+A chave é obrigatoriamente de 16 bytes de tamanho e pode ser obtida pelo arquivo passado por parâmetro ou gerada automaticamente por um número randômico. Se passada uma chave inválida ao programa, uma mensagem de erro será exibida. Todas as funções relacionadas à chave podem ser encontradas em \texttt{src/util/passphrase.py}
 
 \subsubsection{Processamento da Mensagem em Blocos}
 Esta etapa é a primeira a ser executada ao obter o arquivo com a mensagem e foi usado o modo ECB que é considerado o padrão pelo algoritmo se não informado um outro modo e, portanto, os blocos são obtidos de simples segmentos contínuos de 16 bytes da mensagem até chegar ao final. Para o caso do tamanho da mensagem não ser divisível por 16, são acrescentados caracteres representados pelo ASCII 7B em hexadecimal ao final para completar, que ficará apenas no último bloco. Conforme especificação, os blocos, ao serem transformados em matrizes 4x4, são colocados verticalmente na matriz. Consideremos o seguinte array:
@@ -154,7 +155,7 @@ O bloco gerado por ele será o seguinte:
 Na cifração, esta é a primeira etapa que é realizada no primeiro round duas vezes, uma no início ainda com a chave inicial e outra no final, após alterar a chave com o \texttt{expandKey}. Nos rounds seguintes, a etapa é realizada apenas 1 vez, sendo o último passo. Consiste de apenas um XOR realizado entre um byte do bloco com um byte da chave, sendo feita a operação entre os elementos de mesmo \textit{index}. Na decifração é feito o contrário, portanto dos primeiro round até o round $n-1$, é feito o XOR normalmente com a chave da rodada ao início dela e no último round é executado mais uma vez no final de tudo com a chave que terá retornado à original.
 
 \subsubsection{expandKey}
-É a função usada na cifração que modifica a chave a cada rodada. Esta começa realizando um XOR entre a primeira coluna da chave com a última coluna com um shift e alterada pela mesma tabela usada no \texttt{subBytes}. Em seguida, com o resultado deste XOR é feito mais um XOR com a tabela RCON de acordo com o round atual e o resultado deste será a primeira coluna da chave modificada. Já para as 3 demais colunas, é feito o XOR entre a coluna original da chave e a coluna anterior da nova chave, sendo uma operação de natureza cumulativa. A operação é sempre realizada em cima da chave já modificada pelo \texttt{expandKey} anterior, o que garante que sempre será usada uma chave diferente em cada rodada.
+É a função usada na cifração que modifica a chave a cada rodada. Esta começa realizando um XOR entre a primeira coluna da chave e a última coluna com um shift realizado nos elementos e alterada pela mesma tabela usada no \texttt{subBytes}. Em seguida, com o resultado deste XOR é feito mais um XOR do primeiro elemento com o valor da tabela RCON de acordo com o round atual e o resultado deste será a primeira coluna da chave modificada. Já para as 3 demais colunas, é feito o XOR entre a coluna original da chave e a coluna anterior da nova chave, sendo uma operação de natureza cumulativa. A operação é sempre realizada em cima da chave já modificada pelo \texttt{expandKey} anterior, o que garante que sempre será usada uma chave diferente em cada rodada.
 
 Foi criada uma função para a decifração que reverte o \texttt{expandKey} chamada \texttt{shrinkKey}. Como ela é usada para reverter a operação, é feito exatamente o inverso da anterior.
 
@@ -265,9 +266,91 @@ Para a inversão da operação, apenas é trocada a matriz para a descrita abaix
 
 \section{Modo CTR}
 
-\section{Testes}
-Para os testes propostos, foi criado uma classe \texttt{Jpg} que identifica se o arquivo é um jpg por algumas sequências de bytes. O arquivo jpg deve iniciar com \texttt{FF D8 FF} e terminar com \texttt{FF D9}, portanto isso é verificado e em caso positivo, tudo o que vem antes da primeira ocorrência de \texttt{FF DA} e mais 12 bytes depois são removidos da mensagem e guardados para inclusão no resultado final. A abordagem não funcionou corretamente pois existem chances altíssimas de ser gerado o byte \texttt{FF} no criptograma, que indica um header no JPG, não deixando a imagem ser interpretada corretamente pelo visualizador de imagens.
+Não implementado!
 
-Com isso, foi concluído que o formato JPG, apesar de recomendado, não é o formato ideal para o teste proposto. Apesar disso, seguem os resultados:
+\section{Testes}
+Para os testes propostos, foi utilizado o formato de imagem PPM, pois é um formato não compactado que contém um header simples com o nível de compactação na primeira linha, a largura e altura na segunda, a profundidade de cores na terceira e no restante do arquivo, os valores RGB para cada pixel. Por ser um formato que tem o valor específico da cor para cada pixel, é um formato ideal para os testes propostos, em especial no modo de compactação \texttt{P6}, que foi o utilizado no projeto.
+
+Foi criada uma classe \texttt{Ppm} que identifica se o arquivo é um PPM válido verificando o seu header. Em caso positivo, o header é separado do resto da mensagem para que não seja cifrado e ao final de todo o processo, o header é adicionado ao criptograma. Com isso, seguem os resultados que podem ser encontrados na pasta \texttt{docs/img} tanto no formato PPM quanto no formato JPG após conversão:
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=.5\textwidth]{../sample/dupla.jpg}
+    \caption{Imagem original (selfie da dupla)}
+\end{figure}
+
+A imagem pode ser encontrada na pasta \texttt{sample} tanto no formato PPM quanto no JPG.
+
+\subsection{ECB}
+
+Seguem os testes para o modo ECB usando a chave \texttt{keys/key\_sample}:
+
+\subsubsection{1 Rodada}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=.5\textwidth]{img/ecb1.jpg}
+    \caption{Imagem cifrada com 1 rodada do AES}
+\end{figure}
+
+\subsubsection{5 Rodadas}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=.5\textwidth]{img/ecb5.jpg}
+    \caption{Imagem cifrada com 5 rodadas do AES}
+\end{figure}
+
+\subsubsection{9 Rodadas}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=.5\textwidth]{img/ecb9.jpg}
+    \caption{Imagem cifrada com 9 rodadas do AES}
+\end{figure}
+
+\subsubsection{13 Rodadas}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=.5\textwidth]{img/ecb13.jpg}
+    \caption{Imagem cifrada com 13 rodadas do AES}
+\end{figure}
+
+% \subsection{Modo CTR}
+
+% Seguem os testes para o modo CTR usando a chave \texttt{keys/key\_sample}:
+
+% \subsubsection{1 Rodada}
+
+% \begin{figure}[H]
+% 	\centering
+%     \includegraphics[width=.5\textwidth]{img/ecb1.jpg}
+%     \caption{Imagem cifrada com 1 rodada do AES}
+% \end{figure}
+
+% \subsubsection{5 Rodadas}
+
+% \begin{figure}[H]
+% 	\centering
+%     \includegraphics[width=.5\textwidth]{img/ecb5.jpg}
+%     \caption{Imagem cifrada com 5 rodadas do AES}
+% \end{figure}
+
+% \subsubsection{9 Rodadas}
+
+% \begin{figure}[H]
+% 	\centering
+%     \includegraphics[width=.5\textwidth]{img/ecb9.jpg}
+%     \caption{Imagem cifrada com 9 rodadas do AES}
+% \end{figure}
+
+% \subsubsection{13 Rodadas}
+
+% \begin{figure}[H]
+% 	\centering
+%     \includegraphics[width=.5\textwidth]{img/ecb13.jpg}
+%     \caption{Imagem cifrada com 13 rodadas do AES}
+% \end{figure}
 
 \end{document}

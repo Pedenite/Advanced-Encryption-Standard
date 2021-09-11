@@ -1,11 +1,11 @@
 from util.args_helper import str2bool
-from util.jpg import Jpg
 import util.passphrase
 import argparse
 import os
 import sys
 from symmetric.cipher import Cipher
 from symmetric.decipher import Decipher
+from util.ppm import Ppm
 
 parser = argparse.ArgumentParser(description='Cifra e decifra dados usando a cifra de bloco AES simétrica.', formatter_class=argparse.RawTextHelpFormatter)
 
@@ -14,6 +14,7 @@ parser.add_argument('-k', nargs='?', type=argparse.FileType('rb'), help='Arquivo
 parser.add_argument('-o', type=argparse.FileType('wb'), help='Arquivo de saída', metavar='output', required=True)
 parser.add_argument('-d', nargs='?', type=str2bool, const=True, default=False, help='Especifica que a mensagem deve ser decifrada na execução (padrão: cifrar)', metavar='decifrar')
 parser.add_argument('-r', nargs='?', type=int, default=10, help='Quantidade de rodadas', metavar='rounds')
+parser.add_argument('-m', nargs='?', type=str, default='ecb', help='Modo de Operação. Opções válidas são ECB (padrão) ou CTR', metavar='modo')
 
 args = parser.parse_args()
 
@@ -21,6 +22,11 @@ os.chdir(os.path.dirname(sys.argv[0]))
 
 if args.r <= 0:
     print("Quantidade de rounds inválida!")
+    exit()
+
+mode = args.m.lower()
+if not mode in ['ecb', 'ctr']:
+    print("Modo inválido! Os disponíveis são ECB ou CTR")
     exit()
 
 msg = pswd = []
@@ -41,11 +47,12 @@ else:
     except Exception as e:
         print(e)
 
-jpg = Jpg(msg)
-if jpg.is_jpg:
-    msg = jpg.content
+ppm = Ppm(msg)
+if ppm.is_ppm:
+    print("Separando headers do PPM")
+    msg = ppm.content
 
-res = Decipher(msg, pswd, args.r) if args.d else Cipher(msg, pswd, args.r)
+res = Decipher(msg, pswd, args.r, mode) if args.d else Cipher(msg, pswd, args.r, mode)
 
 with args.o as file:
     blocks = []
@@ -59,7 +66,7 @@ with args.o as file:
             else:
                 break
     
-    if jpg.is_jpg:
-        blocks = jpg.headers + blocks + [0xff, 0xd9]
+    if ppm.is_ppm:
+        blocks = ppm.headers + blocks
 
     file.write(bytes(blocks))
