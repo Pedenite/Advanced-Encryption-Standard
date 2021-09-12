@@ -82,6 +82,7 @@ Segue a lista de argumentos aceitos:
     \item \textbf{-r} - Número positivo que representa a quantidade de \textit{rounds} que o AES irá usar. Se não passado um valor, será usado o padrão de 10.
     \item \textbf{-d} - Argumento que indica que o programa vai descriptografar. Deve ser passado no final do comando sem parâmetros adicionais.
     \item \textbf{-m} - Modo de operação do AES. Opções disponíveis são ECB ou CTR. Se não passado um valor, será usado o modo ECB.
+    \item \textbf{-n} - Número inicial para o modo CTR (nonce). Se não passado, será usado como 0.
 \end{itemize}
 
 Portanto, como exemplo, para cifrar o mesmo arquivo do exemplo acima usando a mesma chave (ex.: \texttt{keys/key\_1}) com 1 \textit{round} e colocando o output no arquivo \texttt{sample/1r.ppm}, pode ser usado o seguinte comando:
@@ -97,7 +98,15 @@ python src/aes.py sample/1r.ppm -k keys/key_1 -r 1 -o sample/decoded.ppm -d
 \end{lstlisting}
 
 \subsection{Aspectos Técnicos}
-Para a implementação descrita acima, temos 2 arquivos principais que realizam as operações do AES, ambos na pasta \texttt{src/symmetric}. O \texttt{cipher} é usado para cifrar e o \texttt{decipher} é usado para decifrar. De forma resumida, o funcionamento da cifração se dá na seguinte forma:
+O AES é uma cifra de blocos, portanto, o seu funcionamento pode ser descrito pelo seguinte diagrama considerando o modo ECB:
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\textwidth]{img/ecb.png}
+    \caption{Cifra de bloco no modo ECB}
+\end{figure}
+
+Para a implementação descrita na seção anterior, temos 2 arquivos principais que realizam as operações do AES, ambos na pasta \texttt{src/symmetric}. O \texttt{cipher} é usado para cifrar e o \texttt{decipher} é usado para decifrar. De forma resumida, o funcionamento da cifração se dá na seguinte forma:
 
 \begin{lstlisting}
 self.addRoundKey()          # realiza o XOR com a chave inicial
@@ -132,7 +141,7 @@ self.addRoundKey()          # Realiza o XOR com a chave inicial
 A chave é obrigatoriamente de 16 bytes de tamanho e pode ser obtida pelo arquivo passado por parâmetro ou gerada automaticamente por um número randômico. Se passada uma chave inválida ao programa, uma mensagem de erro será exibida. Todas as funções relacionadas à chave podem ser encontradas em \texttt{src/util/passphrase.py}
 
 \subsubsection{Processamento da Mensagem em Blocos}
-Esta etapa é a primeira a ser executada ao obter o arquivo com a mensagem e foi usado o modo ECB que é considerado o padrão pelo algoritmo se não informado um outro modo e, portanto, os blocos são obtidos de simples segmentos contínuos de 16 bytes da mensagem até chegar ao final. Para o caso do tamanho da mensagem não ser divisível por 16, são acrescentados caracteres representados pelo ASCII 7B em hexadecimal ao final para completar, que ficará apenas no último bloco. Conforme especificação, os blocos, ao serem transformados em matrizes 4x4, são colocados verticalmente na matriz. Consideremos o seguinte array:
+Esta etapa é a primeira a ser executada ao obter o arquivo com a mensagem e, portanto, os blocos são obtidos de simples segmentos contínuos de 16 bytes da mensagem até chegar ao final. Para o caso do tamanho da mensagem não ser divisível por 16, são acrescentados caracteres representados pelo ASCII 7B em hexadecimal ao final para completar, que ficará apenas no último bloco. Conforme especificação, os blocos, ao serem transformados em matrizes 4x4, são colocados verticalmente na matriz. Consideremos o seguinte array:
 
 \begin{center}
 \addvbuffer[12pt 8pt]{\begin{tabular}{|cccccccccccccccc|}
@@ -266,7 +275,37 @@ Para a inversão da operação, apenas é trocada a matriz para a descrita abaix
 
 \section{Modo CTR}
 
-Não implementado!
+Para a implementação do modo CTR, foram usadas as mesmas classes python que no ECB e para a utilização dele, 2 novos parâmetros podem ser passados para o programa conforme descrito na seçãoanterior. Portanto, se o usuário deseja cifrar o arquivo \texttt{sample/dupla.ppm} no modo CTR com o \texttt{nonce} 0 produzindo o output no arquivo \texttt{sample/ctr.ppm} com o restantes dos parâmetros padrões, pode-se usar o seguinte comando:
+
+\begin{lstlisting}
+python src/aes.py sample/dupla.ppm -o sample/ctr.ppm -m ctr
+\end{lstlisting}
+
+O \texttt{nonce} pode ser modificado com o parâmetro \texttt{-n}, assim como os todos os parâmetros informados na seção anterior. Como exemplo, pode-se cifrar o mesmo arquivo no modo CTR com a chave \texttt{keys/key\_2}, o valor do \texttt{nonce} 123456789 e nove rodadas, produzindo o output em \texttt{sample/r9ctr.ppm} com o seguinte comando:
+
+\begin{lstlisting}
+python src/aes.py sample/dupla.ppm -o sample/r9ctr.ppm -k keys/key_2 -r 9 -m ctr -n 123456789
+\end{lstlisting}
+
+Para decifrar o CTR, não é necessária a utilização do \texttt{-d}, basta "cifrar a cifra" novamente que o resultado será a mensagem original. Mas para isso, deve ser usada além da mesma chave, o mesmo \texttt{nonce} como mostrado no comando abaixo:
+
+\begin{lstlisting}
+python src/aes.py sample/r9ctr.ppm -o sample/decoded_ctr.ppm -k keys/key_2 -r 9 -m ctr -n 123456789
+\end{lstlisting}
+
+\subsection{Aspectos Técnicos}
+
+O CTR é o modo de cifra de blocos que implementa um contador e nele existem diferenças consideráveis em relação ao ECB. Na implementação feita do CTR, o que é passado para o algoritmo de cifragem no lugar da mensagem é um bloco gerado a partir do \texttt{nonce} somado ao contador que tem o valor de seu index. A quantidade de blocos gerados deve ser a mesma quantidade dos blocos gerados pela mensagem e cada bloco é montado pelos bytes obtidos do número de 128 bits gerado pela operação.
+
+tudo o que foi descrito acima, tirando a parte da decifragem foi reutilizado, pois o processo do AES em si se mantém inalterado. Adicionalmente, em relação ao ECB, foram criados if's adicionais e uma nova função para gerar os blocos a partir do \texttt{nonce} com o contador. O processo do ECB pode ser descrito pela imagem abaixo:
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\textwidth]{img/ctr.png}
+    \caption{Cifra de bloco no modo CTR}
+\end{figure}
+
+Como podemos ver, a mensagem só entra após todo o processo do AES for concluído, onde é feito um XOR entre o output e a mensagem e esta é a nossa cifra. Por este motivo, para reverter a operação, basta realizá-la novamente, pois o inverso de um XOR é o próprio XOR.
 
 \section{Testes}
 Para os testes propostos, foi utilizado o formato de imagem PPM, pois é um formato não compactado que contém um header simples com o nível de compactação na primeira linha, a largura e altura na segunda, a profundidade de cores na terceira e no restante do arquivo, os valores RGB para cada pixel. Por ser um formato que tem o valor específico da cor para cada pixel, é um formato ideal para os testes propostos, em especial no modo de compactação \texttt{P6}, que foi o utilizado no projeto.
@@ -279,7 +318,7 @@ Foi criada uma classe \texttt{Ppm} que identifica se o arquivo é um PPM P6 vál
     \caption{Imagem original (selfie da dupla)}
 \end{figure}
 
-A imagem pode ser encontrada na pasta \texttt{sample} tanto no formato PPM quanto no JPG.
+A imagem pode ser encontrada na pasta \texttt{sample} tanto no formato PPM quanto no JPG. Os \textit{Hashes} foram gerados com a função MD5 a partir de sua versão PPM e podem ser encontrados abaixo de cada imagem.
 
 \subsection{ECB}
 
@@ -295,6 +334,8 @@ Seguem os testes para o modo ECB usando a chave \texttt{keys/key\_sample} inclui
     \caption{Imagem cifrada com 1 rodada do AES}
 \end{figure}
 
+\noindent \texttt{MD5 (ecb1.ppm) = 023d6decf1ebb85563fae1668c48c160}
+
 \subsubsection{5 Rodadas}
 
 \texttt{python src/aes.py sample/dupla.ppm -o docs/img/ecb5.ppm -k keys/key\_sample -r 5}
@@ -304,6 +345,8 @@ Seguem os testes para o modo ECB usando a chave \texttt{keys/key\_sample} inclui
     \includegraphics[width=.5\textwidth]{img/ecb5.jpg}
     \caption{Imagem cifrada com 5 rodadas do AES}
 \end{figure}
+
+\noindent \texttt{MD5 (ecb5.ppm) = 50f397efc5fd9534c2cccc810b4fbfe8}
 
 \subsubsection{9 Rodadas}
 
@@ -315,6 +358,8 @@ Seguem os testes para o modo ECB usando a chave \texttt{keys/key\_sample} inclui
     \caption{Imagem cifrada com 9 rodadas do AES}
 \end{figure}
 
+\noindent \texttt{MD5 (ecb9.ppm) = 42536ed747de4d4fb1fdf454cfe8006f}
+
 \subsubsection{13 Rodadas}
 
 \texttt{python src/aes.py sample/dupla.ppm -o docs/img/ecb13.ppm -k keys/key\_sample -r 13}
@@ -324,6 +369,8 @@ Seguem os testes para o modo ECB usando a chave \texttt{keys/key\_sample} inclui
     \includegraphics[width=.5\textwidth]{img/ecb13.jpg}
     \caption{Imagem cifrada com 13 rodadas do AES}
 \end{figure}
+
+\noindent \texttt{MD5 (ecb13.ppm) = d019478b1d9e122a35cc6146b1985456}
 
 \subsection{Modo CTR}
 
@@ -339,6 +386,8 @@ Seguem os testes para o modo CTR usando a chave \texttt{keys/key\_sample}:
     \caption{Imagem cifrada com 1 rodada do AES}
 \end{figure}
 
+\noindent \texttt{MD5 (ctr1.ppm) = d477b734b15d441ef5e6675914b30a13}
+
 \subsubsection{5 Rodadas}
 
 \texttt{python src/aes.py sample/dupla.ppm -o docs/img/ctr5.ppm -k keys/key\_sample -r 5 -m ctr}
@@ -348,6 +397,8 @@ Seguem os testes para o modo CTR usando a chave \texttt{keys/key\_sample}:
     \includegraphics[width=.5\textwidth]{img/ctr5.jpg}
     \caption{Imagem cifrada com 5 rodadas do AES}
 \end{figure}
+
+\noindent \texttt{MD5 (ctr5.ppm) = b28b7012c992e3c354025d0f89dc2163}
 
 \subsubsection{9 Rodadas}
 
@@ -359,6 +410,8 @@ Seguem os testes para o modo CTR usando a chave \texttt{keys/key\_sample}:
     \caption{Imagem cifrada com 9 rodadas do AES}
 \end{figure}
 
+\noindent \texttt{MD5 (ctr9.ppm) = 3cfcaac02cfaaebb8ae9dd68e530da01}
+
 \subsubsection{13 Rodadas}
 
 \texttt{python src/aes.py sample/dupla.ppm -o docs/img/ctr13.ppm -k keys/key\_sample -r 13 -m ctr}
@@ -368,5 +421,10 @@ Seguem os testes para o modo CTR usando a chave \texttt{keys/key\_sample}:
     \includegraphics[width=.5\textwidth]{img/ctr13.jpg}
     \caption{Imagem cifrada com 13 rodadas do AES}
 \end{figure}
+
+\noindent \texttt{MD5 (ctr13.ppm) = 4a89bf7591e1856795057a22cdfa1ec0}
+
+\subsection{Considerações}
+Podemos ver que os outputs do ECB contém elementos identificáveis da imagem, mesmo com uma quantidade maior de rodadas, portanto, pode-se considerar que ele é menos seguro que o CTR, que com apenas 1 round ainda mostrou elementos da imagem facilmente reconhecíveis, como um rosto, mas com quantidades de rodadas acima disso, já é impossível reconhecer qualquer elemento da imagem.
 
 \end{document}

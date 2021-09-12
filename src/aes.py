@@ -57,7 +57,7 @@ if ppm.is_ppm:
     print("Separando headers do PPM")
     msg = ppm.content
 
-res = Decipher(msg, pswd, args.r) if args.d else Cipher(msg, pswd, args.r, mode, args.n)
+res = Decipher(msg, pswd, args.r) if args.d and mode != 'ctr' else Cipher(msg, pswd, args.r, mode, args.n)
 
 with args.o as file:
     blocks = []
