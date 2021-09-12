@@ -2,7 +2,7 @@ from util.blocks import processMessage, convert_matrix, convert_list
 from util.galois import mat_mul, rcon
 
 class Cipher():
-    def __init__(self, msg, key, rounds, mode):
+    def __init__(self, msg, key, rounds, mode, nonce):
         self.msg = msg
         self.key = key
 
@@ -25,7 +25,11 @@ class Cipher():
             140, 161, 137,  13, 191, 230,  66, 104,  65, 153,  45,  15, 176,  84, 187,  22
         ]
 
-        self.blocks = processMessage(self.msg)
+        if mode != 'ctr':
+            self.blocks = processMessage(self.msg)
+        else:
+            self.actual_blocks = processMessage(self.msg)
+            self.blocks = self.counter(nonce)
 
         self.addRoundKey()
         for i in range(rounds):
@@ -36,6 +40,11 @@ class Cipher():
                 self.mixColumns()
             
             self.addRoundKey()
+
+        if mode == 'ctr':
+            for i in range(len(self.actual_blocks)):
+                for j in range(16):
+                    self.blocks[i][j] ^= self.actual_blocks[i][j]
 
     def subBytes(self):
         for block in self.blocks:
@@ -81,10 +90,17 @@ class Cipher():
                 self.key[j + (4*i)] ^= column_f[j]
                 column_f[j] = self.key[j + (4*i)]
 
-    def __str__(self):
-        msg = ''
-        for block in self.blocks:
-            for c in block:
-                msg += f'{str(c)}\n'
-
-        return msg 
+    def counter(self, nonce):
+        nonce <<= 64
+        blocks = []
+        for i in range(len(self.actual_blocks)):
+            block = [0 for _ in range(16)]
+            temp = nonce
+            for j in range(16):
+                block[15-j] = temp&0xff
+                temp >>= 8
+        
+            blocks.append(block)
+            nonce += 1
+        
+        return blocks

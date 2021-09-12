@@ -2,7 +2,7 @@ from util.blocks import processMessage, convert_matrix, convert_list
 from util.galois import mat_mul, rcon
 
 class Decipher():
-    def __init__(self, msg, key, rounds, mode):
+    def __init__(self, msg, key, rounds):
         self.msg = msg
         self.key = key
 
@@ -117,11 +117,3 @@ class Decipher():
             self.key[i] ^= column_f[i]
 
         return self.key
-
-    def __str__(self):
-        msg = ''
-        for block in self.blocks:
-            for c in block:
-                msg += f'{str(c)}\n'
-
-        return msg 

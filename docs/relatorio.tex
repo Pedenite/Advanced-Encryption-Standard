@@ -271,7 +271,7 @@ Não implementado!
 \section{Testes}
 Para os testes propostos, foi utilizado o formato de imagem PPM, pois é um formato não compactado que contém um header simples com o nível de compactação na primeira linha, a largura e altura na segunda, a profundidade de cores na terceira e no restante do arquivo, os valores RGB para cada pixel. Por ser um formato que tem o valor específico da cor para cada pixel, é um formato ideal para os testes propostos, em especial no modo de compactação \texttt{P6}, que foi o utilizado no projeto.
 
-Foi criada uma classe \texttt{Ppm} que identifica se o arquivo é um PPM válido verificando o seu header. Em caso positivo, o header é separado do resto da mensagem para que não seja cifrado e ao final de todo o processo, o header é adicionado ao criptograma. Com isso, seguem os resultados que podem ser encontrados na pasta \texttt{docs/img} tanto no formato PPM quanto no formato JPG após conversão:
+Foi criada uma classe \texttt{Ppm} que identifica se o arquivo é um PPM P6 válido verificando o seu header. Em caso positivo, o header é separado do resto da mensagem para que não seja cifrado e ao final de todo o processo, o header é adicionado ao criptograma. Com isso, seguem os resultados que podem ser encontrados na pasta \texttt{docs/img} tanto no formato PPM quanto no formato JPG após conversão:
 
 \begin{figure}[H]
 	\centering
@@ -283,9 +283,11 @@ A imagem pode ser encontrada na pasta \texttt{sample} tanto no formato PPM quant
 
 \subsection{ECB}
 
-Seguem os testes para o modo ECB usando a chave \texttt{keys/key\_sample}:
+Seguem os testes para o modo ECB usando a chave \texttt{keys/key\_sample} incluindo o comando usado para gerá-los:
 
 \subsubsection{1 Rodada}
+
+\texttt{python src/aes.py sample/dupla.ppm -o docs/img/ecb1.ppm -k keys/key\_sample -r 1}
 
 \begin{figure}[H]
 	\centering
@@ -295,6 +297,8 @@ Seguem os testes para o modo ECB usando a chave \texttt{keys/key\_sample}:
 
 \subsubsection{5 Rodadas}
 
+\texttt{python src/aes.py sample/dupla.ppm -o docs/img/ecb5.ppm -k keys/key\_sample -r 5}
+
 \begin{figure}[H]
 	\centering
     \includegraphics[width=.5\textwidth]{img/ecb5.jpg}
@@ -302,6 +306,8 @@ Seguem os testes para o modo ECB usando a chave \texttt{keys/key\_sample}:
 \end{figure}
 
 \subsubsection{9 Rodadas}
+
+\texttt{python src/aes.py sample/dupla.ppm -o docs/img/ecb9.ppm -k keys/key\_sample -r 9}
 
 \begin{figure}[H]
 	\centering
@@ -311,46 +317,56 @@ Seguem os testes para o modo ECB usando a chave \texttt{keys/key\_sample}:
 
 \subsubsection{13 Rodadas}
 
+\texttt{python src/aes.py sample/dupla.ppm -o docs/img/ecb13.ppm -k keys/key\_sample -r 13}
+
 \begin{figure}[H]
 	\centering
     \includegraphics[width=.5\textwidth]{img/ecb13.jpg}
     \caption{Imagem cifrada com 13 rodadas do AES}
 \end{figure}
 
-% \subsection{Modo CTR}
+\subsection{Modo CTR}
 
-% Seguem os testes para o modo CTR usando a chave \texttt{keys/key\_sample}:
+Seguem os testes para o modo CTR usando a chave \texttt{keys/key\_sample}:
 
-% \subsubsection{1 Rodada}
+\subsubsection{1 Rodada}
 
-% \begin{figure}[H]
-% 	\centering
-%     \includegraphics[width=.5\textwidth]{img/ecb1.jpg}
-%     \caption{Imagem cifrada com 1 rodada do AES}
-% \end{figure}
+\texttt{python src/aes.py sample/dupla.ppm -o docs/img/ctr1.ppm -k keys/key\_sample -r 1 -m ctr}
 
-% \subsubsection{5 Rodadas}
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=.5\textwidth]{img/ctr1.jpg}
+    \caption{Imagem cifrada com 1 rodada do AES}
+\end{figure}
 
-% \begin{figure}[H]
-% 	\centering
-%     \includegraphics[width=.5\textwidth]{img/ecb5.jpg}
-%     \caption{Imagem cifrada com 5 rodadas do AES}
-% \end{figure}
+\subsubsection{5 Rodadas}
 
-% \subsubsection{9 Rodadas}
+\texttt{python src/aes.py sample/dupla.ppm -o docs/img/ctr5.ppm -k keys/key\_sample -r 5 -m ctr}
 
-% \begin{figure}[H]
-% 	\centering
-%     \includegraphics[width=.5\textwidth]{img/ecb9.jpg}
-%     \caption{Imagem cifrada com 9 rodadas do AES}
-% \end{figure}
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=.5\textwidth]{img/ctr5.jpg}
+    \caption{Imagem cifrada com 5 rodadas do AES}
+\end{figure}
 
-% \subsubsection{13 Rodadas}
+\subsubsection{9 Rodadas}
 
-% \begin{figure}[H]
-% 	\centering
-%     \includegraphics[width=.5\textwidth]{img/ecb13.jpg}
-%     \caption{Imagem cifrada com 13 rodadas do AES}
-% \end{figure}
+\texttt{python src/aes.py sample/dupla.ppm -o docs/img/ctr9.ppm -k keys/key\_sample -r 9 -m ctr}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=.5\textwidth]{img/ctr9.jpg}
+    \caption{Imagem cifrada com 9 rodadas do AES}
+\end{figure}
+
+\subsubsection{13 Rodadas}
+
+\texttt{python src/aes.py sample/dupla.ppm -o docs/img/ctr13.ppm -k keys/key\_sample -r 13 -m ctr}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=.5\textwidth]{img/ctr13.jpg}
+    \caption{Imagem cifrada com 13 rodadas do AES}
+\end{figure}
 
 \end{document}

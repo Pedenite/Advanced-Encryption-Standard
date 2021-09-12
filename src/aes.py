@@ -15,6 +15,7 @@ parser.add_argument('-o', type=argparse.FileType('wb'), help='Arquivo de saída'
 parser.add_argument('-d', nargs='?', type=str2bool, const=True, default=False, help='Especifica que a mensagem deve ser decifrada na execução (padrão: cifrar)', metavar='decifrar')
 parser.add_argument('-r', nargs='?', type=int, default=10, help='Quantidade de rodadas', metavar='rounds')
 parser.add_argument('-m', nargs='?', type=str, default='ecb', help='Modo de Operação. Opções válidas são ECB (padrão) ou CTR', metavar='modo')
+parser.add_argument('-n', nargs='?', type=int, default=0, help="Número inicial para o modo CTR (nonce). Padrão: 0", metavar='nonce')
 
 args = parser.parse_args()
 
@@ -27,6 +28,10 @@ if args.r <= 0:
 mode = args.m.lower()
 if not mode in ['ecb', 'ctr']:
     print("Modo inválido! Os disponíveis são ECB ou CTR")
+    exit()
+
+if args.n > 0xffffffffffffffff:
+    print("Nonce inválido. Favor passar um número de até 64 bits")
     exit()
 
 msg = pswd = []
@@ -52,7 +57,7 @@ if ppm.is_ppm:
     print("Separando headers do PPM")
     msg = ppm.content
 
-res = Decipher(msg, pswd, args.r, mode) if args.d else Cipher(msg, pswd, args.r, mode)
+res = Decipher(msg, pswd, args.r) if args.d else Cipher(msg, pswd, args.r, mode, args.n)
 
 with args.o as file:
     blocks = []
